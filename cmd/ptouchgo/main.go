@@ -59,21 +59,20 @@ func mainCLI() error {
 	rasterLines := len(data) / bytesWidth
 
 	debug := *debugMode
-	// if debug {
-	// 	for i := 0; i < len(data); i += bytesWidth {
-	// 		to := i + bytesWidth
-	// 		if to > len(data) {
-	// 			to = len(data)
-	// 		}
-	// 		chunk := data[i:to]
-	// 		for _, c := range chunk {
-	// 			fmt.Printf("%08b", c)
-	// 		}
-	// 		fmt.Println()
-	// 	}
-	// }
+	if debug {
+		for i := 0; i < len(data); i += bytesWidth {
+			to := i + bytesWidth
+			if to > len(data) {
+				to = len(data)
+			}
+			chunk := data[i:to]
+			for _, c := range chunk {
+				fmt.Printf("%08b", c)
+			}
+			fmt.Println()
+		}
+	}
 
-	fmt.Println(bytesWidth)
 	// Compless data
 	packedData, err := ptouchgo.CompressImage(data, bytesWidth)
 	if err != nil {
@@ -140,13 +139,6 @@ func mainCLI() error {
 			return err
 		}
 	}
-
-	status, err := ser.ReadStatus()
-	if err != nil {
-		return err
-	}
-
-	fmt.Println("StatusType: ", status.StatusType)
 
 	ser.Reset()
 	return nil

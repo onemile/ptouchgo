@@ -329,23 +329,17 @@ func (s Serial) Close() error {
 
 func (s Serial) SetPrintProperty(rasterLines int) error {
 	var enableFlag int
-
-	// 成功時: 1b697a860a3e00d00200000000
-	// ON: 0x02, 0x04, 0x80
-	// enableFlag |= 0x02
-	// enableFlag |= 0x04
-	// enableFlag |= 0x08
-	// enableFlag |= 0x40
-	// enableFlag |= 0x80
-
+	enableFlag |= printPropertyEnableBitMedia
+	enableFlag |= printPropertyEnableBitWidth
+	enableFlag |= printPropertyEnableBitLength
 	enableFlag |= printPropertyEnableBitRecoverOnDevice
+
+	// Media type
+	const mediaType = byte(0x0A)
 
 	// Tape
 	tapeWidth := byte(uint(62))
-	enableFlag |= printPropertyEnableBitWidth
-
 	tapeLength := byte(uint(0))
-	enableFlag |= printPropertyEnableBitLength
 
 	// Data size
 	// N4*256*256*256 + N3*256*256 + N2*256 + N1
@@ -354,10 +348,6 @@ func (s Serial) SetPrintProperty(rasterLines int) error {
 	rasterNumN3 := byte(r % (256 * 256 * 256) / (256 * 256))
 	rasterNumN2 := byte(r % (256 * 256 * 256) % (256 * 256) / 256)
 	rasterNumN1 := byte(r % 256)
-
-	// Media type
-	const mediaType = byte(0x0A)
-	enableFlag |= printPropertyEnableBitMedia
 
 	const page = byte(0x00) // firstPage: 0, otherPage: 1
 
@@ -559,17 +549,20 @@ func CompressImage(data []byte, bytesWidth int) ([]byte, error) {
 
 		length := len(packed)
 
-		fmt.Println(length)
-		// fmt.Println(bytesWidth)
+		// 2色印刷の場合は2色分の情報を186Byte(1色につき93Byte)で1つのラスターデータとして送る
+		dataBuf.Write(cmdRasterTransfer)
+		dataBuf.Write([]byte{
+			byte(0x01),
+			byte(length),
+		})
+		dataBuf.Write(packed)
 
 		dataBuf.Write(cmdRasterTransfer)
 		dataBuf.Write([]byte{
-			// byte(uint(length % 256)),
-			// byte(uint(length / 256)),
 			byte(0x02),
-			byte(uint(bytesWidth)),
+			byte(length),
 		})
-		dataBuf.Write(chunk)
+		dataBuf.Write(packed)
 	}
 
 	return dataBuf.Bytes(), nil
