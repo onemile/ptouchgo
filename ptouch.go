@@ -54,7 +54,7 @@ type Status struct {
 type Model int
 
 const (
-        modelPTP700   Model = 0x67 // PT-P700
+	modelPTP700   Model = 0x67 // PT-P700
 	modelPTP750W  Model = 0x68 // PT-P750W
 	modelPTP710BT Model = 0x76 // PT-P710BT
 )
@@ -248,9 +248,9 @@ func Open(address string, TapeWidthMM uint, debug bool) (Serial, error) {
 		ser, err = OpenUSB()
 	} else {
 		if debug {
-			log.Println("Select Bluetooth driver")
+			log.Println("Select TCP driver")
 		}
-		ser, err = OpenBluetooth(address)
+		ser, err = OpenTCP(address)
 	}
 	if err != nil {
 		return Serial{}, err
@@ -266,7 +266,7 @@ func (s Serial) ClearBuffer() error {
 	if s.Debug {
 		log.Println("ClearBuffer")
 	}
-	_, err := s.Conn.Write(make([]byte, 100))
+	_, err := s.Conn.Write(make([]byte, 400))
 	return err
 }
 
